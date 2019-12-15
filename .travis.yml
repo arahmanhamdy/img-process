@@ -1,0 +1,26 @@
+language: python
+python:
+  - "3.7"
+before_install:
+  - pip install -U pip
+  - pip install codecov
+install:
+  - pip install -r requirements.txt
+script:
+  - nosetests --with-coverage --cover-package=svc
+
+deploy:
+  # deploy master to the staging environment
+  - provider: script
+    script: zappa deploy stg 2>/dev/null || zappa update stg
+    on:
+      branch: master
+
+  # deploy production to production environment
+  - provider: script
+    script: zappa deploy prd 2>/dev/null || zappa update prd
+    on:
+      branch: production
+
+after_success:
+  - codecov

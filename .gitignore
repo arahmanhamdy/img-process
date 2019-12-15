@@ -1,0 +1,6 @@
+*.db
+*.pyc
+.coverage
+svc/uploads/*
+.venv/
+.idea/

@@ -1,0 +1,9 @@
+# Ignore the base structure for the app
+ignore:
+  - "main.py"
+  - "start.py"
+  - "svc/api"
+  - "svc/models/entities.py"
+  - "svc/config.py"
+  - "svc/cmdline.py"
+  - "svc/app.py"
