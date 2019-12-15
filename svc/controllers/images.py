@@ -52,6 +52,7 @@ class ImagesController:
         results = {}
         errors = {}
         for task in processors.REGISTERED_TASKS:
+            image_obj.stream.seek(0)
             try:
                 value = task.execute(image_obj)
                 # the execution may be done through a queue, so the results may not be immediate

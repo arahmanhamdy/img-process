@@ -1,5 +1,6 @@
 from datetime import datetime
 import unittest
+from io import BytesIO
 from unittest.mock import Mock, patch
 
 from svc.models.entities import Images
@@ -40,7 +41,9 @@ class TestImagesController(unittest.TestCase):
         self.controller._config.update({"ALLOWED_IMAGES_EXTENSIONS": ["png"]})
         self._assert_raise_bad_request(file_obj)
 
-    def test_post_images_returns_valid_results(self):
+    @patch("svc.controllers.images.processors")
+    def test_post_images_returns_valid_results(self, mock_processors):
+        mock_processors.REGISTERED_TASKS = []
         self.controller._config.update({"ALLOWED_IMAGES_EXTENSIONS": ["png"]})
         file_obj = FileObjDouble("image.png", "images/png")
         with patch("svc.controllers.images.entities") as entities_mock:
@@ -66,7 +69,7 @@ class TestImagesController(unittest.TestCase):
         task2 = TaskDouble("task2", raises_exception=True)
         with patch("svc.controllers.images.processors") as processors:
             processors.REGISTERED_TASKS = [task1, task2]
-            results = self.controller._process_image(None)
+            results = self.controller._process_image(FileObjDouble("test.png"))
             expected = {
                 "task1": {"value": 10},
                 "errors": {"task2": "Unknown Error"}
@@ -95,6 +98,7 @@ class FileObjDouble:
     def __init__(self, name, mimetype=None):
         self.filename = name
         self.mimetype = mimetype
+        self.stream = BytesIO()
 
 
 class TaskDouble:
