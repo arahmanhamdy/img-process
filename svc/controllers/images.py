@@ -2,16 +2,16 @@ import uuid
 
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
-from flask import request
 
+from svc.models import entities
 from svc.utils.file_reader import get_file_reader
 from svc.utils.file_writer import get_file_writer
-from svc.models import entities
 
 
 class ImagesController:
-    def __init__(self, config):
+    def __init__(self, config, base_url):
         self._config = config
+        self._base_url = "{}/view".format(base_url)
 
     def view_image(self, image_name):
         reader = self._get_reader()
@@ -24,10 +24,16 @@ class ImagesController:
         entities.Images.save_results(image_name, result)
         response = {
             "image": image_name,
-            "image_url": "{}/view/{}".format(request.url, image_name),
+            "image_url": "{}/{}".format(self._base_url, image_name),
             "result": result,
         }
         return response
+
+    def get_history(self, page, count):
+        count = count or 20
+        page = page or 1
+        results = entities.Images.get_history(int(page), int(count))
+        return [result.serialize(self._base_url) for result in results]
 
     def _validate_image(self, image_obj):
         image_validator = _ImageValidator(image_obj, self._config)

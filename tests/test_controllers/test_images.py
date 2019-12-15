@@ -1,5 +1,8 @@
+from datetime import datetime
 import unittest
 from unittest.mock import Mock, patch
+
+from svc.models.entities import Images
 
 from werkzeug.exceptions import BadRequest
 
@@ -13,7 +16,7 @@ class TestImagesController(unittest.TestCase):
         self.config = {
             "UPLOAD_TYPE": "lcl"
         }
-        self.controller = ImagesControllerSpy(self.config)
+        self.controller = ImagesControllerSpy(self.config, "http://localhost")
         self.image_name = "image.png"
 
     def test_view_images_calls_reader_get_response(self):
@@ -37,15 +40,26 @@ class TestImagesController(unittest.TestCase):
         self.controller._config.update({"ALLOWED_IMAGES_EXTENSIONS": ["png"]})
         self._assert_raise_bad_request(file_obj)
 
-    @patch("svc.controllers.images.request")
-    def test_post_images_returns_valid_results(self, mock_request):
+    def test_post_images_returns_valid_results(self):
         self.controller._config.update({"ALLOWED_IMAGES_EXTENSIONS": ["png"]})
-        mock_request.url = "http://localhost"
         file_obj = FileObjDouble("image.png", "images/png")
         with patch("svc.controllers.images.entities") as entities_mock:
             self.controller.post_image(file_obj)
             self.controller.writer.save.assert_called_once()
             entities_mock.Images.save_results.assert_called_once()
+
+    def test_get_history_returns_empty_list_if_no_results(self):
+        with patch("svc.controllers.images.entities") as entities_mock:
+            entities_mock.Images.get_history.return_value = []
+            result = self.controller.get_history(10, 20)
+            self.assertEqual(result, [])
+
+    def test_get_history_returns_serialized_items_if_results(self):
+        results = [Images(path="test.png", result={}, uploaded_at=datetime.utcnow()) for i in range(10)]
+        with patch("svc.controllers.images.entities") as entities_mock:
+            entities_mock.Images.get_history.return_value = results
+            result = self.controller.get_history(1, 20)
+            self.assertEqual(len(result), 10)
 
     def _assert_raise_bad_request(self, file_obj):
         with self.assertRaises(BadRequest):
@@ -53,8 +67,8 @@ class TestImagesController(unittest.TestCase):
 
 
 class ImagesControllerSpy(ImagesController):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, config, base_url):
+        super().__init__(config, base_url)
         self.reader = Mock(BaseFileReader)
         self.writer = Mock(BaseFileWriter)
 

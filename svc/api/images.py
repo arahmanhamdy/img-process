@@ -7,16 +7,21 @@ bp = Blueprint('images', __name__)
 
 
 @bp.route('', methods=['GET'])
-def get_images():
-    return jsonify("Hello World")
+def get_history():
+    page = request.args.get("page")
+    per_page = request.args.get("count")
+    controller = ImagesController(current_app.config, request.base_url)
+    result = controller.get_history(page, per_page)
+    return jsonify(result)
 
 
 @bp.route('', methods=['POST'])
 def post_image():
-    controller = ImagesController(current_app.config)
+    controller = ImagesController(current_app.config, request.base_url)
     image_obj = request.files.get("image")
     try:
-        return controller.post_image(image_obj)
+        result = controller.post_image(image_obj)
+        return jsonify(result)
     except BadRequest as e:
         response = jsonify({
             "error": e.description,
@@ -27,7 +32,7 @@ def post_image():
 
 @bp.route('/view/<filename>')
 def view_image(filename):
-    controller = ImagesController(current_app.config)
+    controller = ImagesController(current_app.config, request.base_url)
     return controller.view_image(filename)
 
 
