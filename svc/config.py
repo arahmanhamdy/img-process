@@ -11,8 +11,8 @@ common_config = {
     'DEBUG': False,
     'SQLALCHEMY_DATABASE_URI': os.environ.get("SQLALCHEMY_DATABASE_URI", LOCAL_SQLALCHEMY_URL),
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-    'ALLOWED_IMAGES_EXTENSIONS': ['txt'],
-    'MAX_IMAGE_SIZE': 16 * 1024 * 1024  # 10MB
+    'ALLOWED_IMAGES_EXTENSIONS': ['png', 'jpg', 'jpeg', 'tiff'],
+    'MAX_CONTENT_LENGTH': 2 * 1024 * 1024  # 2MB
 }
 
 prd_config = {
