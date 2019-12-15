@@ -61,6 +61,18 @@ class TestImagesController(unittest.TestCase):
             result = self.controller.get_history(1, 20)
             self.assertEqual(len(result), 10)
 
+    def test_process_images_returns_valid_results(self):
+        task1 = TaskDouble("task1", raises_exception=False)
+        task2 = TaskDouble("task2", raises_exception=True)
+        with patch("svc.controllers.images.processors") as processors:
+            processors.REGISTERED_TASKS = [task1, task2]
+            results = self.controller._process_image(None)
+            expected = {
+                "task1": {"value": 10},
+                "errors": {"task2": "Unknown Error"}
+            }
+            self.assertDictEqual(results, expected)
+
     def _assert_raise_bad_request(self, file_obj):
         with self.assertRaises(BadRequest):
             self.controller.post_image(file_obj)
@@ -83,3 +95,14 @@ class FileObjDouble:
     def __init__(self, name, mimetype=None):
         self.filename = name
         self.mimetype = mimetype
+
+
+class TaskDouble:
+    def __init__(self, name, raises_exception):
+        self.NAME = name
+        self.raises_exception = raises_exception
+
+    def execute(self, image_obj):
+        if self.raises_exception:
+            raise Exception("Unknown Error")
+        return {"value": 10}

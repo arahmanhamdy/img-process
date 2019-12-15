@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from svc.models import entities
 from svc.utils.file_reader import get_file_reader
 from svc.utils.file_writer import get_file_writer
+from svc import processors
 
 
 class ImagesController:
@@ -48,7 +49,17 @@ class ImagesController:
         return file_name
 
     def _process_image(self, image_obj):
-        return {}
+        results = {}
+        errors = {}
+        for task in processors.REGISTERED_TASKS:
+            try:
+                value = task.execute(image_obj)
+                # the execution may be done through a queue, so the results may not be immediate
+                if value:
+                    results[task.NAME] = value
+            except Exception as e:
+                errors[task.NAME] = str(e)
+        return {**results, "errors": errors}
 
     def _get_reader(self):
         return get_file_reader(self._config)
