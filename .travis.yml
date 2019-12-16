@@ -13,18 +13,16 @@ script:
 deploy:
   # deploy master to the staging environment
   - provider: script
-    script: zappa deploy stg 2>/dev/null || zappa update stg
+    script: bash deploy.sh stg
     on:
       branch: master
 
   # deploy production to production environment
   - provider: script
-    script: zappa deploy prd 2>/dev/null || zappa update prd
+    script: bash deploy.sh prd
     on:
       branch: production
 
 after_success:
   - codecov
-  - docker build -t arahmanhamdy/img-process .
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push arahmanhamdy/img-process
+
