@@ -4,6 +4,7 @@ python:
 before_install:
   - pip install -U pip
   - pip install codecov
+  - pip install zappa==0.48.2
 install:
   - pip install -r requirements.txt
 script:
