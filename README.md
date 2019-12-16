@@ -11,14 +11,16 @@ Image Processing API written in Python using Flask API to upload images and proc
 - [Extending processors](#extending-processors)
 - [Running Unit Test](#running-unit-tests)
 - [CI/CD](#ci--cd)
-- [AWS Live Demo](aws-live-demo)
+- [AWS Live Demo](#aws-live-demo)
+- [Architecture Q/A](#architecture-qa)
 
 ### Quick Start
 - #### Using virtualenv
     ```bash
   git clone https://github.com/arahmanhamdy/img-process.git
   cd img-process
-  python -m venv .venv
+  python3 -m venv .venv
+  source .venv/bin/activate
   pip install -r requirements.txt
   python start.py 
     ```
@@ -92,3 +94,27 @@ The pipeline execute the following automatically with new commits:
 ### AWS live demo
 I have created a live [demo](https://4dbz3odohd.execute-api.us-east-2.amazonaws.com/stg/images) using AWS free-tier with the following deployment architecture
 ![AWS Deployment](deploy.jpg)
+
+### Architecture Q/A
+**Why do we use zappa serverless framework?**
+- Zappa offers an easy way to deploy flask apps using aws api gateway
+
+**Why do we use sql database instead of a no-sql one, specially while we need flexible schema for saving results?**
+- Most modern sql engines support json data type with better performance (i.e. Postgresql VS MongoDb) but consumes more disk space which is not an issue in our project
+- Sqlalchemy provides unified data access layer for different sql engines  
+- Using sqlite in `dev` environment enabled quick start development without the hassle of setup separate db engine
+
+**Why do we have separate utilities for image readers and writers?**
+- To be able to use different types of storage (local, s3) in a unified way and be extendable in the future to include other types if any (i.e. ftp)
+
+**Why do we need to register tasks explicitly instead of dynamic loading of modules?**
+- Explicit is better than implicit [PEP-20](https://www.python.org/dev/peps/pep-0020/)
+
+**What if the processing task takes long time (longer than request max time)?**
+- The current architecture enables us with flexibility that if we found specific tasks takes long time, we can change the execute method to just push a job to a queue and add a new endpoint for updating results when finished  
+
+**Why do we have different main.py and start.py outside svc dir?**
+- To be able to use them with zappa and with manual deployment
+
+**Why do we have to install numpy for such a small task?**
+- Actually that is true, it is not needed but in such projects which aims for adding image processing tasks we will use numpy sooner or later
