@@ -25,3 +25,6 @@ deploy:
 
 after_success:
   - codecov
+  - docker build -t arahmanhamdy/img-process .
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push arahmanhamdy/img-process
