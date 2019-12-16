@@ -3,5 +3,5 @@
 .coverage
 .venv/
 .idea/
+docs/
 svc/uploads/*
-

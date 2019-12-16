@@ -4,7 +4,7 @@
         "runtime": "python3.7",
         "app_function": "main.app",
         "s3_bucket": "storage.img.process",
-        "exclude": ["boto3*", "botocore*", "nose*", "coverage*", "tests", "__pycache__*"]
+        "exclude": ["boto3*", "botocore*", "nose*", "coverage*", "tests", "__pycache__*", "docs"]
     },
     "stg": {
         "aws_region": "us-east-2",
